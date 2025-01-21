@@ -145,6 +145,17 @@
         'webhook_url': 'YOUR_DISCORD_ACCESS_TOKEN',
     },
 
+    'webhook': {
+
+        # ======================  Webhook  ======================
+
+        # ***** Webhook URL *****
+        # Webhook URL 任意のHTTP POSTリクエストのエンドポイントを設定できます。
+        # Webhook URL の発行方法、含まれるデータについては Readme.md を参照してください。
+
+        'webhook_url': 'YOUR_WEBHOOK_URL',
+    },
+
     'twitter': {
 
         # ======================  Twitter  ======================

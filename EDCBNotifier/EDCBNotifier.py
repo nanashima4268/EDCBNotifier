@@ -1,14 +1,13 @@
-
 import colorama
 import os
 import ruamel.yaml
 import shutil
 import sys
 
+from SendWebhook import Webhook
 from SendDiscord import Discord
 from SendLINE import LINE
 from SendTwitter import Twitter
-from SendMastodon import Mastodon
 
 # バージョン情報
 VERSION = '2.0.0'
@@ -145,6 +144,29 @@ def main():
                 print(f'[Discord] Result: Success (Code: {result_discord["status"]})')
                 print(f'[Discord] Message: {result_discord["message"]}')
 
+    if 'Webhook' in CONFIG['general']['notify_type']:
+
+        print('-' * TERMINAL_WIDTH)
+
+        webhook = Webhook(CONFIG['webhook']['webhook_url'])
+
+        try:
+            result_webhook:dict = webhook.sendMessage(message=macros, image_path=image)
+        except Exception as error:
+            print(f"[Webhook] Result: Failed")
+            print(f"[Webhook] {colorama.Fore.RED}Error: {error.args[0]}")
+        else:
+            if result_webhook["status"] != 200 and result_webhook["status"] != 204:
+                # ステータスが 200 or 204 以外（失敗）
+                print(f'[Webhook] Result: Failed (Code: {result_webhook["status"]})')
+                print(
+                    f'[Webhook] {colorama.Fore.RED}Error: {result_webhook["message"]}'
+                )
+            else:
+                # ステータスが 200 or 204（成功）
+                print(f'[Webhook] Result: Success (Code: {result_webhook["status"]})')
+                print(f'[Webhook] Message: {result_webhook["message"]}')
+
     # Twitter API を初期化
     if 'Tweet' in CONFIG['general']['notify_type'] or 'DirectMessage' in CONFIG['general']['notify_type']:
 
@@ -187,44 +209,6 @@ def main():
             sender_id = result_directmessage['event']['message_create']['sender_id']
             print(f'[DirectMessage] Result: Success')
             print(f'[DirectMessage] Message: https://twitter.com/messages/{recipient_id}-{sender_id}')
-
-    # Mastodon API を初期化
-    if 'Toot' in CONFIG['general']['notify_type'] or 'MastodonDirectMessage' in CONFIG['general']['notify_type']:
-
-        mastodon = Mastodon(
-            CONFIG['mastodon']['base_url'],
-            CONFIG['mastodon']['access_token'],
-        )
-
-    # Mastodon にトゥートを送信
-    if 'Toot' in CONFIG['general']['notify_type']:
-
-        print('-' * TERMINAL_WIDTH)
-
-        # トゥートを送信
-        try:
-            result_toot: dict = mastodon.sendToot(message, image_path=image)
-        except Exception as error:
-            print('[Toot] Result: Failed')
-            print(f'[Toot] {colorama.Fore.RED}Error: {error.args[0]}')
-        else:
-            print('[Toot] Result: Success')
-            print(f'[Toot] Toot: {result_toot["url"]}')
-
-    # Mastodon にダイレクトメッセージを送信
-    if 'MastodonDirectMessage' in CONFIG['general']['notify_type']:
-
-        print('-' * TERMINAL_WIDTH)
-
-        # ダイレクトメッセージを送信
-        try:
-            result_toot: dict = mastodon.sendDirectMessage(message, image_path=image)
-        except Exception as error:
-            print('[MastodonDirectMessage] Result: Failed')
-            print(f'[MastodonDirectMessage] {colorama.Fore.RED}Error: {error.args[0]}')
-        else:
-            print('[MastodonDirectMessage] Result: Success')
-            print(f'[MastodonDirectMessage] MastodonDirectMessage: {result_toot["url"]}')
 
     print('=' * TERMINAL_WIDTH)
 
